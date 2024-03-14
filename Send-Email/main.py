@@ -45,9 +45,8 @@ def handler(event=None, context=None):
             hometeam_odds, awayteam_odds = odds_change_to_float(hometeam_info[1].get_text()), odds_change_to_float(awayteam_info[0].get_text())
 
             # 배당 차이 기준이 되는 변수!
-            threshold = 0
-            #  and (current_time in db_access.get_time_data())
-            if (hometeam_name in db_access.get_home_data()):
+            threshold = 0.24
+            if (hometeam_name in db_access.get_home_data()) and (current_time in db_access.get_time_data()):
                 before_home_odd, before_away_odd = db_access.get_home_odds(hometeam_name), db_access.get_away_odds(hometeam_name)
                 game_time = (date + start_time).rstrip()
                 
