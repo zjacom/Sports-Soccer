@@ -3,8 +3,8 @@ import json
 
 def lambda_handler(event, context):
     # SQS 대기열 URL을 지정
-    sqs_queue_url = 'https://sqs.ap-northeast-2.amazonaws.com/487590574852/Soccer_Queue'
-    stream_arn = 'arn:aws:dynamodb:ap-northeast-2:487590574852:table/Soccer_Odds_Observer/stream/2024-03-08T05:43:13.444'
+    sqs_queue_url = [SQS URL]
+    stream_arn = [DynamoDB Stream ARN]
     dynamodb_client = boto3.client('dynamodb')
     streams_client = boto3.client('dynamodbstreams')
 
