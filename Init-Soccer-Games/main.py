@@ -37,17 +37,13 @@ def handler(event=None, context=None):
             if hometeam_name in db_access.get_home_data():
                 ele.next_sibling
             else:
-                new_data = {'Time' : (date + start_time).rstrip(), 'Home': hometeam_name, 'HomeOdds' : hometeam_odds, 'AwayOdds' : awayteam_odds}
-                ddb_data = json.loads(json.dumps(new_data), parse_float=Decimal)
-                db_access.put_data(ddb_data)
-                # # 배당이 1.99 이상 2.4 이하인 경기만 DB에 저장
-                # if (1.99 <= hometeam_odds <= 2.4) or (1.99 <= awayteam_odds <= 2.4):
-                #     new_data = {'Time' : (date + start_time).rstrip(), 'Home': hometeam_name, 'HomeOdds' : hometeam_odds, 'AwayOdds' : awayteam_odds}
-                #     ddb_data = json.loads(json.dumps(new_data), parse_float=Decimal)
-                #     db_access.put_data(ddb_data)
-                #     print(ddb_data)
-                # else:
-                #     ele.next_sibling
+                # 배당이 1.99 이상 2.4 이하인 경기만 DB에 저장
+                if (1.99 <= hometeam_odds <= 2.4) or (1.99 <= awayteam_odds <= 2.4):
+                    new_data = {'Time' : (date + start_time).rstrip(), 'Home': hometeam_name, 'HomeOdds' : hometeam_odds, 'AwayOdds' : awayteam_odds}
+                    ddb_data = json.loads(json.dumps(new_data), parse_float=Decimal)
+                    db_access.put_data(ddb_data)
+                else:
+                    ele.next_sibling
     
     return {
         'statusCode': 200,
