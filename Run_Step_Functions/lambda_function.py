@@ -3,8 +3,8 @@ import boto3
 
 def lambda_handler(event, context):
     # SQS 큐 URL 및 Step Functions ARN 설정
-    sqs_queue_url = 'https://sqs.ap-northeast-2.amazonaws.com/487590574852/Soccer_Queue'
-    step_functions_arn = 'arn:aws:states:ap-northeast-2:487590574852:stateMachine:MyStateMachine-kizbhlz9c'
+    sqs_queue_url = [SQS URL]
+    step_functions_arn = [Step Function ARN]
 
     # SQS 메시지 처리
     sqs = boto3.client('sqs')
