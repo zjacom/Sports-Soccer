@@ -6,8 +6,8 @@ import time
 
 def handler(event=None, context=None):
     # SQS 대기열 URL 설정
-    sqs_queue_url = 'https://sqs.ap-northeast-2.amazonaws.com/487590574852/Soccer_Queue'
-    target_arn = 'arn:aws:lambda:ap-northeast-2:487590574852:function:Send-Email-prod-demo'
+    sqs_queue_url = [SQS URL]
+    target_arn = [Send-Email Function ARN]
     
     # SQS 클라이언트 생성
     sqs_client = boto3.client('sqs', region_name='ap-northeast-2')
