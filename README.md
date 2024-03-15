@@ -91,6 +91,7 @@
 - EventBridge Rule에 새로 생성된 규칙이 경기 시작 5분 전에 Send-Email을 실행한다.
 - Send-Email은 배당의 차이가 조건에 부합하는 경기 정보를 이메일로 보내주고, 조회한 데이터를 DynamoDB에서 삭제한다.
   - 배당 차이의 조건은 Send-Email 폴더의 main.py에 보면 threshold 변수가 있는데, 이 부분을 조절해주면 된다.
+  - threshold는 soccer.csv 파일에 있는 데이터를 참고하여 분석했다.
 
 ## TODO
 - 데이터를 수집하는 코드가 현재 삭제된 거 같다. -> 수집 코드를 다시 만들어 데이터 수집을 지속적으로 해볼 예정입니다.
