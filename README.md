@@ -11,87 +11,18 @@
 - 만약 배당의 차이가 조건에 부합하면 해당 경기의 정보를 이메일로 보내줍니다.
 
 ## Architecture
-<img width="897" alt="스크린샷 2024-03-14 오후 10 54 51" src="https://github.com/zjacom/Sports-Soccer/assets/112957047/ca20283d-b836-4996-904d-07e77df6a56f">
+<img width="802" alt="스크린샷 2024-05-12 오전 2 40 15" src="https://github.com/zjacom/Sports-Soccer/assets/112957047/2f976ae2-0ad3-4134-9e92-c05de312e79b">
 
 ## How it works?
-- EventBridge Scheduler의 일정에 맞게 Init-Soccer-Games가 실행되며 새로운 경기 정보를 DynamoDB에 추가한다.
-    - EventBridge Scheduler의 일정은 매일 오전 6시와 오후 6시로 설정하면 적당하다.
-- DynamoDB에 새로운 데이터가 들어오면 DynamoStreamToSQS가 실행되며 SQS에 메시지를 보낸다.
-- EventBridge Rule에 있는 Run_Step_Functions_When_Message_In_SQS가 실행되고 Step_Functions가 실행된다.
-    - Run_Step_Functions_When_Message_In_SQS은 아래와 같다.
-```
-{
-  "source": ["aws.sqs"],
-  "detail-type": ["AWS API Call via CloudTrail"],
-  "detail": {
-    "eventSource": ["sqs.amazonaws.com"],
-    "eventName": ["SendMessage"]
-  }
-}
-```
-- Step_Functions는 아래와 같은 구조로 만들어졌으며, SQS에 메시지가 없을 때까지 반복된다.
-```
-{
-  "Comment": "Invoke Lambda Function Until StatusCode is 200",
-  "StartAt": "Check_Queue_Has_Message",
-  "States": {
-    "Check_Queue_Has_Message": {
-      "Type": "Task",
-      "Resource": "arn:aws:lambda:ap-northeast-2:487590574852:function:Check_Queue_Has_Message",
-      "ResultPath": "$.lambdaResult",
-      "Next": "CheckStatusCode"
-    },
-    "CheckStatusCode": {
-      "Type": "Choice",
-      "Choices": [
-        {
-          "Variable": "$.lambdaResult.statusCode",
-          "NumericEquals": 200,
-          "Next": "Create_Rule_If_Queue_Has_Message"
-        }
-      ],
-      "Default": "EndState"
-    },
-    "Create_Rule_If_Queue_Has_Message": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
-      "OutputPath": "$.Payload",
-      "Parameters": {
-        "Payload.$": "$",
-        "FunctionName": "arn:aws:lambda:ap-northeast-2:487590574852:function:Create-Rules-prod-demo:$LATEST"
-      },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.AWSLambdaException",
-            "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
-          ],
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "BackoffRate": 2
-        }
-      ],
-      "Next": "WaitBeforeNextInvocation"
-    },
-    "WaitBeforeNextInvocation": {
-      "Type": "Wait",
-      "Seconds": 30,
-      "Next": "Check_Queue_Has_Message"
-    },
-    "EndState": {
-      "Type": "Pass",
-      "Result": "Lambda function returned a non-200 status code. Ending the state machine.",
-      "End": true
-    }
-  }
-}
-```
-- EventBridge Rule에 새로 생성된 규칙이 경기 시작 5분 전에 Send-Email을 실행한다.
-- Send-Email은 배당의 차이가 조건에 부합하는 경기 정보를 이메일로 보내주고, 조회한 데이터를 DynamoDB에서 삭제한다.
-  - 배당 차이의 조건은 Send-Email 폴더의 main.py에 보면 threshold 변수가 있는데, 이 부분을 조절해주면 된다.
-  - threshold는 soccer.csv 파일에 있는 데이터를 참고하여 분석했다.
+1. `EventBridge Scheduler`가 일정에 맞춰 `Init-Soccer-Games` 람다 함수를 실행한다.
+2. `Init-Soccer-Games` 람다 함수는 새로운 축구 경기에 대한 정보를 `DynamoDB`에 업데이트한다.
+3. `DynamoDB`에 새로운 데이터가 삽입되면 `DynamoStreamToSQS` 람다 함수가 실행된다.
+4. `DynamoStreamToSQS` 람다 함수는 `SQS`에 메시지(경기 정보)를 보낸다.
+5. `CloudWatch`는 `SQS`에 새로운 메시지가 들어오면 `Run_Step_Functions` 람다 함수를 실행한다.
+6. `Run_Step_Functions` 람다 함수는 `Step_Functions`를 실행한다.
+7. `Step_Functions`는 `SQS`에 메시지가 있는지 확인하고 `Rule`을 생성한다.
+7. 생성된 `Rule`이 트리거되면 `Send-Email` 람다 함수를 실행한다.
+9. `Send-Eamil` 람다 함수는 `DynamoDB`에서 경기 정보를 삭제하고, 만약 조건에 부합하는 경기라면 `SES`를 통해 사용자에게 이메일을 발송한다.
 
 ## TODO
 - 데이터를 수집하는 코드가 현재 삭제된 거 같다. -> 수집 코드를 다시 만들어 데이터 수집을 지속적으로 해볼 예정입니다.
